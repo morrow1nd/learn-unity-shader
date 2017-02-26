@@ -33,7 +33,11 @@
 				v2f o;
 
 				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
-				o.worldNormal = normalize(mul(v.normal, (float3x3)unity_WorldToObject));
+
+				// o.worldNormal = normalize(mul((float3x3)unity_ObjectToWorld, o.normal));
+				// using build-in function, UnityObjectToWorldNormalDir return a normalized direction
+				o.worldNormal = UnityObjectToWorldDir(v.normal);
+
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 
 				return o;
@@ -42,11 +46,14 @@
 			fixed4 frag(v2f i) : SV_Target {
 				fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz;
 
-				fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
+				//fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
+				fixed3 worldLightDir = normalize(UnityWorldSpaceLightDir(i.worldPos));
 
 				fixed3 diffuse = _LightColor0.rgb * _Diffuse.rgb * saturate(dot(i.worldNormal, worldLightDir));
 
-				fixed3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos.xyz);
+				//fixed3 viewDir = normalize(_WorldSpaceCameraPos.xyz - i.worldPos.xyz);
+				fixed3 viewDir = normalize(UnityWorldSpaceViewDir(i.worldPos));
+
 				fixed3 halfDir = normalize(worldLightDir + viewDir);
 
 				fixed3 specular = _LightColor0.rgb * _Specular.rgb * pow(max(0, dot(i.worldNormal, halfDir)), _Gloss);
